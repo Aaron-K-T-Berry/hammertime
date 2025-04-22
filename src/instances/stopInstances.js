@@ -1,3 +1,4 @@
+// comments
 const AWS = require('aws-sdk');
 
 async function deletePuppetLockIfExists(instanceId) {
