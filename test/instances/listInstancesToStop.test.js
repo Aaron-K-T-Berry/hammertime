@@ -24,7 +24,12 @@ describe('listInstancesToStop()', () => {
           Instances: [
             {
               InstanceId: 'i-validinstance',
-              Tags: [],
+              Tags: [
+                {
+                  Key: 'validinstance:test',
+                  Value: '',
+                },
+              ],
             },
           ],
         },
