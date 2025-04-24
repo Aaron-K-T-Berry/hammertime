@@ -7,6 +7,12 @@ function listInstancesToStop(currentOperatingTimezone) {
         Name: 'instance-state-name',
         Values: ['running'],
       },
+      //TODO: This is for testing this is for testing 
+      {
+        Name: 'tag:cloud653',
+        Values: ['cloud653'],
+      },      
+      //TODO: This is for testing this is for testing
     ],
   };
 
