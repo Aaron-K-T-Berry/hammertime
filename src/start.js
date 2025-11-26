@@ -34,10 +34,30 @@ function startAllInstances({ dryRun, currentOperatingTimezone }) {
         console.log(instance);
       });
 
-      return startInstances(startableInstances).then((startedInstanceIds) => {
-        console.log('Finished starting instances. Moving on to untag them.');
-        return untagInstances(startedInstanceIds);
-      });
+      // Retry logic: attempt to start instances with retries
+      const maxRetries = 10;
+      const retryDelay = 60000; // 1 minute in milliseconds
+
+      const attemptStartInstances = (attempt = 1) => {
+        return startInstances(startableInstances)
+          .then((startedInstanceIds) => {
+            console.log('Finished starting instances. Moving on to untag them.');
+            return untagInstances(startedInstanceIds);
+          })
+          .catch((err) => {
+            if (attempt < maxRetries) {
+              console.error(`Failed to start instances (attempt ${attempt}/${maxRetries}):`, err.message);
+              console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+              return new Promise((resolve) => setTimeout(resolve, retryDelay))
+                .then(() => attemptStartInstances(attempt + 1));
+            } else {
+              console.error(`Failed to start instances after ${maxRetries} attempts:`, err.message);
+              throw err;
+            }
+          });
+      };
+
+      return attemptStartInstances();
     });
 }
 
