@@ -1,9 +1,9 @@
-const AWS = require('aws-sdk');
+const { EC2Client, StartInstancesCommand } = require('@aws-sdk/client-ec2');
 const retryWhenThrottled = require("../utils/retryWhenThrottled");
 
 function startInstances(instanceIds) {
-  const ec2 = new AWS.EC2();
-  return retryWhenThrottled(() => ec2.startInstances({ InstanceIds: instanceIds }))
+  const ec2 = new EC2Client({});
+  return retryWhenThrottled(() => ec2.send(new StartInstancesCommand({ InstanceIds: instanceIds })))
     .then(() => instanceIds);
 }
 module.exports = startInstances;

@@ -1,9 +1,8 @@
-const AWS = require('aws-sdk');
+const { EC2Client, StopInstancesCommand } = require('@aws-sdk/client-ec2');
 
 function stopInstances(instanceIds) {
-  const ec2 = new AWS.EC2();
-  return ec2.stopInstances({ InstanceIds: instanceIds })
-    .promise()
+  const ec2 = new EC2Client({});
+  return ec2.send(new StopInstancesCommand({ InstanceIds: instanceIds }))
     .then(() => instanceIds);
 }
 

@@ -20,7 +20,11 @@
   "author": "nib",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.7.19",
+    "@aws-sdk/client-ec2": "^3.500.0",
+    "@aws-sdk/client-rds": "^3.500.0",
+    "@aws-sdk/client-auto-scaling": "^3.500.0",
+    "@aws-sdk/client-ecs": "^3.500.0",
+    "@aws-sdk/client-ssm": "^3.500.0",
     "handlebars": "^4.5.3",
     "@babel/register": "^7.6.2",
     "luxon": "^1.11.4",

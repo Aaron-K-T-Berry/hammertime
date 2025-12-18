@@ -1,6 +1,6 @@
-const AWS = require('aws-sdk');
+const { RDSClient, DescribeDBInstancesCommand } = require('@aws-sdk/client-rds');
 
 module.exports = function listAllDBInstances() {
-  const rds = new AWS.RDS();
-  return rds.describeDBInstances().promise();
+  const rds = new RDSClient({});
+  return rds.send(new DescribeDBInstancesCommand({}));
 };

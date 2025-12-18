@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { EC2Client, DeleteTagsCommand } = require('@aws-sdk/client-ec2');
 
 function untagInstances(instanceIds) {
   const options = {
@@ -9,9 +9,8 @@ function untagInstances(instanceIds) {
       },
     ],
   };
-  const ec2 = new AWS.EC2();
-  return ec2.deleteTags(options)
-    .promise()
+  const ec2 = new EC2Client({});
+  return ec2.send(new DeleteTagsCommand(options))
     .then(() => instanceIds);
 }
 

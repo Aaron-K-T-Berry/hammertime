@@ -1,13 +1,12 @@
-const AWS = require('aws-sdk');
+const { RDSClient, StopDBInstanceCommand } = require('@aws-sdk/client-rds');
 
 module.exports = function stopOneDBInstance(arn) {
-  const rds = new AWS.RDS();
+  const rds = new RDSClient({});
 
   var instanceId = arn.split(':').pop();
   console.log("Stopping " + instanceId + "...");
-  return rds.stopDBInstance({
+  return rds.send(new StopDBInstanceCommand({
       DBInstanceIdentifier: instanceId
-    })
-    .promise()
+    }))
     .then(() => arn);
 };

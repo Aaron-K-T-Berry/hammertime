@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { EC2Client, CreateTagsCommand } = require('@aws-sdk/client-ec2');
 
 function tagInstances(instanceIds) {
   const options = {
@@ -10,9 +10,8 @@ function tagInstances(instanceIds) {
       },
     ],
   };
-  const ec2 = new AWS.EC2();
-  return ec2.createTags(options)
-    .promise()
+  const ec2 = new EC2Client({});
+  return ec2.send(new CreateTagsCommand(options))
     .then(() => instanceIds);
 }
 

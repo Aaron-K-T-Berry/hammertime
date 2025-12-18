@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { EC2Client, DescribeInstancesCommand } = require('@aws-sdk/client-ec2');
 const canITouchThis = require('../tags/canITouchThis');
 const hasTag = require('../tags/hasTag');
 const isInOperatingTimezone = require('../operatingTimezone/isInOperatingTimezone');
@@ -24,9 +24,8 @@ function filterInstances(data, currentOperatingTimezone) {
 
 function listTargetInstances(options) {
   const { params, currentOperatingTimezone } = options;
-  const ec2 = new AWS.EC2();
-  return ec2.describeInstances(params)
-    .promise()
+  const ec2 = new EC2Client({});
+  return ec2.send(new DescribeInstancesCommand(params))
     .then(data => filterInstances(data, currentOperatingTimezone));
 }
 

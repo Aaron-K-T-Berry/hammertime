@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { RDSClient, AddTagsToResourceCommand } = require('@aws-sdk/client-rds');
 
 module.exports = function tagOneDBInstance(arn) {
   const params = {
@@ -8,8 +8,7 @@ module.exports = function tagOneDBInstance(arn) {
       Value: new Date().toISOString()
     }]
   };
-  const rds = new AWS.RDS();
-  return rds.addTagsToResource(params)
-    .promise()
+  const rds = new RDSClient({});
+  return rds.send(new AddTagsToResourceCommand(params))
     .then(() => arn);
 };
