@@ -6,6 +6,17 @@ provider:
   stage: '${env:SLICE}'
   region: '${env:AWS_REGION}'
   deploymentBucket: '${env:DEPLOY_BUCKET}'
+package:
+  individually: false
+  include:
+    - dist/**
+    - node_modules/**
+  exclude:
+    - test/**
+    - .git/**
+    - .gitignore
+    - .babelrc
+    - .eslintrc.json
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -49,10 +60,10 @@ provider:
     enabled: '${file(./dist/isEnabled.js):isEnabled}'
 functions:
   stop-hammertime:
-    handler: hammertime.stop
+    handler: dist/hammertime.stop
     timeout: 900
     events: ${file(./dist/events.js):stop}
   start-hammertime:
-    handler: hammertime.start
+    handler: dist/hammertime.start
     timeout: 900
     events: ${file(./dist/events.js):start}
