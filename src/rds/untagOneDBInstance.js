@@ -5,7 +5,7 @@ module.exports = function untagOneDBInstance(arn) {
     ResourceName: arn,
     TagKeys: ['hammertime:stop']
   };
-  const rds = new RDSClient({});
+  const rds = new RDSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   return rds.send(new RemoveTagsFromResourceCommand(params))
     .then(() => arn);
 };

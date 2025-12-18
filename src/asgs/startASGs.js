@@ -3,7 +3,7 @@ const retryWhenThrottled = require('../utils/retryWhenThrottled');
 const valueForKey = require('../utils/valueForKey');
 
 function spinUpASG(asg) {
-  const autoscaling = new AutoScalingClient({});
+  const autoscaling = new AutoScalingClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const originalASGSize = valueForKey(asg.Tags, 'hammertime:originalASGSize').split(',');
   const params = {
     AutoScalingGroupName: asg.AutoScalingGroupName,

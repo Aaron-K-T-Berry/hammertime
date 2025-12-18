@@ -2,7 +2,7 @@ const { ECSClient, TagResourceCommand } = require('@aws-sdk/client-ecs');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function tagService(service) {
-  const ECS = new ECSClient({});
+  const ECS = new ECSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = {
     resourceArn: service.serviceArn,
     tags: [

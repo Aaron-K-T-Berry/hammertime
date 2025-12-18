@@ -1,28 +1,24 @@
-const AWS = require("aws-sdk");
+const { AutoScalingClient, DescribeAutoScalingGroupsCommand } = require('@aws-sdk/client-auto-scaling');
 const isInOperatingTimezone = require("../operatingTimezone/isInOperatingTimezone");
+const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
-function getAllASGs() {
-  const autoscaling = new AWS.AutoScaling();
+async function getAllASGs() {
+  const autoscaling = new AutoScalingClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = {};
 
-  function followASGPages(allAsgs, data) {
+  async function followASGPages(allAsgs, token) {
+    const requestParams = token ? { ...params, NextToken: token } : params;
+    const data = await retryWhenThrottled(() => autoscaling.send(new DescribeAutoScalingGroupsCommand(requestParams)));
     const combinedAsgs = [...allAsgs, ...data.AutoScalingGroups];
 
     if (data.NextToken) {
-      params.NextToken = data.NextToken;
-      return autoscaling
-        .describeAutoScalingGroups(params)
-        .promise()
-        .then((res) => followASGPages(combinedAsgs, res));
+      return followASGPages(combinedAsgs, data.NextToken);
     }
 
-    return Promise.resolve(combinedAsgs);
+    return combinedAsgs;
   }
 
-  return autoscaling
-    .describeAutoScalingGroups(params)
-    .promise()
-    .then((data) => followASGPages([], data));
+  return followASGPages([], null);
 }
 
 function isASGInCurrentOperatingTimezone(currentOperatingTimezone) {
@@ -34,9 +30,8 @@ function isASGInCurrentOperatingTimezone(currentOperatingTimezone) {
   };
 }
 
-module.exports = function listTargetASGs({ filter, currentOperatingTimezone }) {
-  return getAllASGs()
-          .then(allASGs => allASGs.filter(filter)
-                                  .filter(isASGInCurrentOperatingTimezone(currentOperatingTimezone)));
+module.exports = async function listTargetASGs({ filter, currentOperatingTimezone }) {
+  const allASGs = await getAllASGs();
+  return allASGs.filter(filter).filter(isASGInCurrentOperatingTimezone(currentOperatingTimezone));
 };
 

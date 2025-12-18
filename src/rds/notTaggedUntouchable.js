@@ -8,7 +8,7 @@ module.exports = function notTaggedUntouchable(arn) {
   const params = {
     ResourceName: arn
   };
-  const rds = new RDSClient({});
+  const rds = new RDSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   return rds.send(new ListTagsForResourceCommand(params))
     .then(data => {
       if (notUntouchable(data))

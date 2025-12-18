@@ -2,7 +2,7 @@ const { AutoScalingClient, ResumeProcessesCommand } = require('@aws-sdk/client-a
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function resumeASGProcesses(asg) {
-  const autoscaling = new AutoScalingClient({});
+  const autoscaling = new AutoScalingClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = {
     AutoScalingGroupName: asg.AutoScalingGroupName,
     ScalingProcesses: []

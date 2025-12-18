@@ -4,7 +4,6 @@ module.exports = function retryWhenThrottled(func) {
   return promiseRetry(
     (retry, number) =>
       func()
-        .promise()
         .catch((err) => {
           if (
             err.code === "Throttling" ||

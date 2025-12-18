@@ -3,7 +3,7 @@ const isInOperatingTimezone = require('../operatingTimezone/isInOperatingTimezon
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 async function getAllClusters(clusters, token) {
-  const ECS = new ECSClient({});
+  const ECS = new ECSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = { nextToken: token };
   const response = await retryWhenThrottled(() => ECS.send(new ListClustersCommand(params)));
   let clusterArray = [];
@@ -29,7 +29,7 @@ async function describeAllClusters(clusters) {
 
 async function describeChunkOfClusters(clusters) {
   // Expects no more than 100 clusters.
-  const ECS = new ECSClient({});
+  const ECS = new ECSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = { clusters };
   const response = await retryWhenThrottled(() => ECS.send(new DescribeClustersCommand(params)));
   return response.clusters;
@@ -48,7 +48,7 @@ async function getAllServices(clusterArnList) {
 }
 
 async function getService(clusterArn) {
-  const ECS = new ECSClient({});
+  const ECS = new ECSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = { cluster: clusterArn, launchType: 'FARGATE' };
   const response = await retryWhenThrottled(() => ECS.send(new ListServicesCommand(params)));
   return { cluster: clusterArn, services: response.serviceArns };
@@ -67,7 +67,7 @@ async function describeServices(clusterList) {
 }
 
 async function describeService(service) {
-  const ECS = new ECSClient({});
+  const ECS = new ECSClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = {
     services: service.services,
     cluster: service.cluster,

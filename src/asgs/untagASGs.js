@@ -3,7 +3,7 @@ const retryWhenThrottled = require('../utils/retryWhenThrottled');
 const createTag = require('../utils/createTag');
 
 function untagASG(asg) {
-  const autoscaling = new AutoScalingClient({});
+  const autoscaling = new AutoScalingClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
   const params = {
     Tags: [
       createTag('hammertime:originalASGSize', asg.AutoScalingGroupName, 'auto-scaling-group'),
