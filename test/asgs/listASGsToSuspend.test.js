@@ -1,5 +1,6 @@
 const assert = require('assert');
-const AWS = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { AutoScalingClient, DescribeAutoScalingGroupsCommand } = require('@aws-sdk/client-auto-scaling');
 const listASGsToSuspend = require('../../src/asgs/listASGsToSuspend');
 const suspendOnePageResponse = require('./responses/suspendOnePageResponse');
 const emptyResponse = require('./responses/emptyResponse');
@@ -7,9 +8,15 @@ const suspendAlreadyRunResponse = require('./responses/suspendAlreadyRunResponse
 const paginatedSuspend = require('./responses/paginatedSuspend');
 const defaultOperatingTimezone = require('../../src/config').defaultOperatingTimezone;
 
+const asgMock = mockClient(AutoScalingClient);
+
 describe('listASGsToSuspend()', () => {
+  beforeEach(() => {
+    asgMock.reset();
+  });
+
   it('returns list of valid running asgs', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', suspendOnePageResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(suspendOnePageResponse);
 
     return listASGsToSuspend(defaultOperatingTimezone, 'all')
       .then((validAsgs) => {
@@ -19,7 +26,7 @@ describe('listASGsToSuspend()', () => {
   });
 
   it('returns an empty list if no asgs found', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', emptyResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(emptyResponse);
 
     return listASGsToSuspend(defaultOperatingTimezone)
       .then((validAsgs) => {
@@ -28,8 +35,8 @@ describe('listASGsToSuspend()', () => {
   });
 
   it('handles pagination', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', (params, callback) => {
-      callback(null, paginatedSuspend(params.NextToken));
+    asgMock.on(DescribeAutoScalingGroupsCommand).callsFake((params) => {
+      return Promise.resolve(paginatedSuspend(params.NextToken));
     });
 
     return listASGsToSuspend(defaultOperatingTimezone, 'all')
@@ -41,9 +48,7 @@ describe('listASGsToSuspend()', () => {
   });
 
   it('ignores asgs that are already suspended by hammertime', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', (params, callback) => {
-      callback(null, suspendAlreadyRunResponse);
-    });
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(suspendAlreadyRunResponse);
 
     return listASGsToSuspend(defaultOperatingTimezone, 'all')
       .then((validAsgs) => {
@@ -53,6 +58,6 @@ describe('listASGsToSuspend()', () => {
   });
 
   afterEach(() => {
-    AWS.restore('AutoScaling', 'describeAutoScalingGroups');
+    asgMock.restore();
   });
 });

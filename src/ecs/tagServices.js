@@ -1,8 +1,8 @@
-const AWS = require('aws-sdk');
+const { ECSClient, TagResourceCommand } = require('@aws-sdk/client-ecs');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function tagService(service) {
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = {
     resourceArn: service.serviceArn,
     tags: [
@@ -10,7 +10,7 @@ function tagService(service) {
       { key: 'stop:hammertime', value: new Date().toISOString() },
     ],
   };
-  return retryWhenThrottled(() => ECS.tagResource(params)).then(() => service);
+  return retryWhenThrottled(() => ECS.send(new TagResourceCommand(params))).then(() => service);
 }
 
 function tagServices(services) {

@@ -1,14 +1,21 @@
 const assert = require('assert');
-const AWS = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { AutoScalingClient, DescribeAutoScalingGroupsCommand } = require('@aws-sdk/client-auto-scaling');
 const listASGsToStart = require('../../src/asgs/listASGsToStart');
 const startOnePageResponse = require('./responses/startOnePageResponse');
 const emptyResponse = require('./responses/emptyResponse');
 const paginatedStart = require('./responses/paginatedStart');
 const defaultOperatingTimezone = require('../../src/config').defaultOperatingTimezone;
 
+const asgMock = mockClient(AutoScalingClient);
+
 describe('listASGsToStart()', () => {
+  beforeEach(() => {
+    asgMock.reset();
+  });
+
   it('returns list of asgs spun down by hammertime', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', startOnePageResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(startOnePageResponse);
 
     return listASGsToStart(defaultOperatingTimezone, 'all')
       .then((validAsgs) => {
@@ -18,7 +25,7 @@ describe('listASGsToStart()', () => {
   });
 
   it('returns an empty list if no asgs found', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', emptyResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(emptyResponse);
     return listASGsToStart(defaultOperatingTimezone, 'all')
       .then((validAsgs) => {
         assert.deepEqual(validAsgs, []);
@@ -26,8 +33,8 @@ describe('listASGsToStart()', () => {
   });
 
   it('handles pagination', () => {
-    AWS.mock('AutoScaling', 'describeAutoScalingGroups', (params, callback) => {
-      callback(null, paginatedStart(params.NextToken));
+    asgMock.on(DescribeAutoScalingGroupsCommand).callsFake((params) => {
+      return Promise.resolve(paginatedStart(params.NextToken));
     });
 
     return listASGsToStart(defaultOperatingTimezone, 'all')
@@ -39,6 +46,6 @@ describe('listASGsToStart()', () => {
   });
 
   afterEach(() => {
-    AWS.restore('AutoScaling', 'describeAutoScalingGroups');
+    asgMock.restore();
   });
 });

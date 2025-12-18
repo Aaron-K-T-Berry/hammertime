@@ -1,9 +1,9 @@
-const AWS = require('aws-sdk');
+const { AutoScalingClient, DeleteTagsCommand } = require('@aws-sdk/client-auto-scaling');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 const createTag = require('../utils/createTag');
 
 function untagASG(asg) {
-  const autoscaling = new AWS.AutoScaling();
+  const autoscaling = new AutoScalingClient({});
   const params = {
     Tags: [
       createTag('hammertime:originalASGSize', asg.AutoScalingGroupName, 'auto-scaling-group'),
@@ -11,7 +11,7 @@ function untagASG(asg) {
     ],
   };
 
-  return retryWhenThrottled(() => autoscaling.deleteTags(params))
+  return retryWhenThrottled(() => autoscaling.send(new DeleteTagsCommand(params)))
     .then(() => asg);
 }
 

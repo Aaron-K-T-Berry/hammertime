@@ -2,14 +2,20 @@
 
 const assert  = require('assert');
 const asgs    = require('../src/asgs');
-const AWS     = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { AutoScalingClient, DescribeAutoScalingGroupsCommand } = require('@aws-sdk/client-auto-scaling');
+
+const asgMock = mockClient(AutoScalingClient);
 
 describe('asgs', () => {
+  beforeEach(() => {
+    asgMock.reset();
+  });
 
   describe('listASGsToStop()', () => {
 
     it('returns list of valid running asgs', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', stopOnePageResponse);
+      asgMock.on(DescribeAutoScalingGroupsCommand).resolves(stopOnePageResponse);
 
       return asgs.listASGsToStop()
         .then(validAsgs => {
@@ -19,7 +25,7 @@ describe('asgs', () => {
     });
 
     it('returns an empty list if no asgs found', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', emptyResponse);
+      asgMock.on(DescribeAutoScalingGroupsCommand).resolves(emptyResponse);
 
       return asgs.listASGsToStop()
         .then(validAsgs => {
@@ -28,8 +34,8 @@ describe('asgs', () => {
     });
 
     it('handles pagination', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', function(params, callback) {
-        callback(null, paginatedStop(params.NextToken));
+      asgMock.on(DescribeAutoScalingGroupsCommand).callsFake((params) => {
+        return Promise.resolve(paginatedStop(params.NextToken));
       });
 
       return asgs.listASGsToStop()
@@ -45,9 +51,7 @@ describe('asgs', () => {
     });
 
     it('ignores asgs that are already stopped by hammertime', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', function(params, callback) {
-        callback(null, stopAlreadyRunResponse);
-      });
+      asgMock.on(DescribeAutoScalingGroupsCommand).resolves(stopAlreadyRunResponse);
 
       return asgs.listASGsToStop()
         .then(validAsgs => {
@@ -59,7 +63,7 @@ describe('asgs', () => {
     });
 
     afterEach(() => {
-      AWS.restore('AutoScaling', 'describeAutoScalingGroups');
+      asgMock.restore();
     });
 
   });
@@ -67,7 +71,7 @@ describe('asgs', () => {
   describe('listASGsToStart()', () => {
 
     it('returns list of asgs spun down by hammertime', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', startOnePageResponse);
+      asgMock.on(DescribeAutoScalingGroupsCommand).resolves(startOnePageResponse);
 
       return asgs.listASGsToStart()
         .then(validAsgs => {
@@ -77,7 +81,7 @@ describe('asgs', () => {
     });
 
     it('returns an empty list if no asgs found', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', emptyResponse);
+      asgMock.on(DescribeAutoScalingGroupsCommand).resolves(emptyResponse);
       return asgs.listASGsToStart()
         .then(validAsgs => {
           assert.deepEqual(validAsgs, []);
@@ -85,8 +89,8 @@ describe('asgs', () => {
     });
 
     it('handles pagination', () => {
-      AWS.mock('AutoScaling', 'describeAutoScalingGroups', function(params, callback) {
-        callback(null, paginatedStart(params.NextToken));
+      asgMock.on(DescribeAutoScalingGroupsCommand).callsFake((params) => {
+        return Promise.resolve(paginatedStart(params.NextToken));
       });
 
       return asgs.listASGsToStart()
@@ -102,7 +106,7 @@ describe('asgs', () => {
     });
 
     afterEach(() => {
-      AWS.restore('AutoScaling', 'describeAutoScalingGroups');
+      asgMock.restore();
     });
 
   });

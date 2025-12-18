@@ -2,9 +2,15 @@
 
 const assert    = require('assert');
 const instances = require('../src/instances');
-const AWS       = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { EC2Client, DescribeInstancesCommand } = require('@aws-sdk/client-ec2');
+
+const ec2Mock = mockClient(EC2Client);
 
 describe('instances', () => {
+  beforeEach(() => {
+    ec2Mock.reset();
+  });
 
   describe('listInstancesToStop()', () => {
 
@@ -47,7 +53,7 @@ describe('instances', () => {
           }
         ]
       };
-      AWS.mock('EC2', 'describeInstances', mockInstances);
+      ec2Mock.on(DescribeInstancesCommand).resolves(mockInstances);
       return instances.listInstancesToStop()
         .then(instanceIds => {
           assert.deepEqual(instanceIds, ['i-validinstance']);
@@ -58,7 +64,7 @@ describe('instances', () => {
       const mockInstances = {
           "Reservations": []
         }
-      AWS.mock('EC2', 'describeInstances', mockInstances);
+      ec2Mock.on(DescribeInstancesCommand).resolves(mockInstances);
 
       return instances.listInstancesToStop()
         .then(instanceIds => {
@@ -67,7 +73,7 @@ describe('instances', () => {
     });
 
     afterEach(() => {
-      AWS.restore('EC2', 'describeInstances');
+      ec2Mock.restore();
     });
 
   });
@@ -109,7 +115,7 @@ describe('instances', () => {
           }
         ]
       };
-      AWS.mock('EC2', 'describeInstances', mockInstances);
+      ec2Mock.on(DescribeInstancesCommand).resolves(mockInstances);
       return instances.listInstancesToStop()
         .then(instanceIds => {
           assert.deepEqual(instanceIds, ['i-validinstance']);
@@ -117,7 +123,7 @@ describe('instances', () => {
     });
 
     afterEach(() => {
-      AWS.restore('EC2', 'describeInstances');
+      ec2Mock.restore();
     });
 
   });

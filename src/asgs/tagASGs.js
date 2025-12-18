@@ -1,9 +1,9 @@
-const AWS = require('aws-sdk');
+const { AutoScalingClient, CreateOrUpdateTagsCommand } = require('@aws-sdk/client-auto-scaling');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 const createTag = require('../utils/createTag');
 
 function tagASG(asg) {
-  const autoscaling = new AWS.AutoScaling();
+  const autoscaling = new AutoScalingClient({});
   const params = {
     Tags: [
       createTag('hammertime:originalASGSize', asg.AutoScalingGroupName, 'auto-scaling-group', `${asg.MinSize},${asg.MaxSize},${asg.DesiredCapacity}`),
@@ -11,7 +11,7 @@ function tagASG(asg) {
     ],
   };
 
-  return retryWhenThrottled(() => autoscaling.createOrUpdateTags(params))
+  return retryWhenThrottled(() => autoscaling.send(new CreateOrUpdateTagsCommand(params)))
     .then(() => asg);
 }
 

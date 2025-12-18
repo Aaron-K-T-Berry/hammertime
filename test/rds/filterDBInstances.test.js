@@ -1,9 +1,16 @@
-const AWS = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { RDSClient, DescribeDBInstancesCommand, ListTagsForResourceCommand } = require('@aws-sdk/client-rds');
 const assert = require('assert');
 const filterDBInstances = require('../../src/rds/filterDBInstances');
 const notTaggedUntouchable = require('../../src/rds/notTaggedUntouchable');
 
+const rdsM = mockClient(RDSClient);
+
 describe('instances', () => {
+  beforeEach(() => {
+    rdsM.reset();
+  });
+
   describe('filterDBInstances()', () => {
     it('returns a list of running RDS DB instances', () => {
       const mockDBInstances = {
@@ -33,7 +40,7 @@ describe('instances', () => {
           }
         ]
       };
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('available')
         .then((arns) => {
           assert.deepEqual(arns, ['arn:aws:rds:aws-region:aws-account:db:i-availableone', 'arn:aws:rds:aws-region:aws-account:db:i-availabletoo']);
@@ -69,7 +76,7 @@ describe('instances', () => {
           }
         ]
       }
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('stopped')
         .then((arns) => {
           assert.deepEqual(arns, ['arn:aws:rds:aws-region:aws-account:db:i-stopped']);
@@ -86,7 +93,7 @@ describe('instances', () => {
           ReadReplicaDBClusterIdentifiers: [],
         }]
       };
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('available')
         .then((arns) => {
           assert.deepEqual(arns, []);
@@ -96,7 +103,7 @@ describe('instances', () => {
       const mockDBInstances = {
         DBInstances: []
       }
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances()
         .then((arns) => {
           assert.deepEqual(arns, []);
@@ -113,7 +120,7 @@ describe('instances', () => {
           ReadReplicaDBClusterIdentifiers: [],
         }]
       };
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('available')
         .then((arns) => {
           assert.deepEqual(arns, []);
@@ -130,7 +137,7 @@ describe('instances', () => {
           ReadReplicaDBClusterIdentifiers: [],
         }]
       };
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('available')
         .then((arns) => {
           assert.deepEqual(arns, []);
@@ -147,14 +154,15 @@ describe('instances', () => {
           ReadReplicaDBClusterIdentifiers: ['replica1'],
         }]
       };
-      AWS.mock('RDS', 'describeDBInstances', mockDBInstances);
+      rdsM.on(DescribeDBInstancesCommand).resolves(mockDBInstances);
       return filterDBInstances('available')
         .then((arns) => {
           assert.deepEqual(arns, []);
         });
     });
+
     afterEach(() => {
-      AWS.restore('RDS', 'describeDBInstances');
+      rdsM.restore();
     });
   });
 
@@ -171,7 +179,7 @@ describe('instances', () => {
           }
         ]
       };
-      AWS.mock('RDS', 'listTagsForResource', mockTagList);
+      rdsM.on(ListTagsForResourceCommand).resolves(mockTagList);
       return notTaggedUntouchable('somearn')
         .then((arn) => {
           assert.deepEqual(arn, null);
@@ -189,14 +197,11 @@ describe('instances', () => {
           }
         ]
       };
-      AWS.mock('RDS', 'listTagsForResource', mockTagList);
+      rdsM.on(ListTagsForResourceCommand).resolves(mockTagList);
       return notTaggedUntouchable('somearn')
         .then((arn) => {
           assert.deepEqual(arn, 'somearn');
         });
-    });
-    afterEach(() => {
-      AWS.restore('RDS', 'listTagsForResource');
     });
   });
 });

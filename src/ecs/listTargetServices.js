@@ -1,11 +1,11 @@
-const AWS = require('aws-sdk');
+const { ECSClient, ListClustersCommand, DescribeClustersCommand, ListServicesCommand, DescribeServicesCommand } = require('@aws-sdk/client-ecs');
 const isInOperatingTimezone = require('../operatingTimezone/isInOperatingTimezone');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 async function getAllClusters(clusters, token) {
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = { nextToken: token };
-  const response = await retryWhenThrottled(() => ECS.listClusters(params));
+  const response = await retryWhenThrottled(() => ECS.send(new ListClustersCommand(params)));
   let clusterArray = [];
   if (clusters) clusterArray = [...clusterArray, ...clusters];
   if (response.clusterArns) clusterArray = [...clusterArray, ...response.clusterArns];
@@ -29,9 +29,9 @@ async function describeAllClusters(clusters) {
 
 async function describeChunkOfClusters(clusters) {
   // Expects no more than 100 clusters.
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = { clusters };
-  const response = await retryWhenThrottled(() => ECS.describeClusters(params));
+  const response = await retryWhenThrottled(() => ECS.send(new DescribeClustersCommand(params)));
   return response.clusters;
 }
 
@@ -48,9 +48,9 @@ async function getAllServices(clusterArnList) {
 }
 
 async function getService(clusterArn) {
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = { cluster: clusterArn, launchType: 'FARGATE' };
-  const response = await retryWhenThrottled(() => ECS.listServices(params));
+  const response = await retryWhenThrottled(() => ECS.send(new ListServicesCommand(params)));
   return { cluster: clusterArn, services: response.serviceArns };
 }
 
@@ -67,13 +67,13 @@ async function describeServices(clusterList) {
 }
 
 async function describeService(service) {
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = {
     services: service.services,
     cluster: service.cluster,
     include: ['TAGS'],
   };
-  const response = await retryWhenThrottled(() => ECS.describeServices(params));
+  const response = await retryWhenThrottled(() => ECS.send(new DescribeServicesCommand(params)));
   return response.services;
 }
 

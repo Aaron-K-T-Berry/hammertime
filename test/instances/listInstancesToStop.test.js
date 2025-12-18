@@ -1,9 +1,16 @@
 const assert = require('assert');
-const AWS = require('aws-sdk-mock');
+const { mockClient } = require('aws-sdk-client-mock');
+const { EC2Client, DescribeInstancesCommand } = require('@aws-sdk/client-ec2');
 const listInstancesToStop = require('../../src/instances/listInstancesToStop');
 const defaultOperatingTimezone = require('../../src/config').defaultOperatingTimezone;
 
+const ec2Mock = mockClient(EC2Client);
+
 describe('listInstancesToStop()', () => {
+  beforeEach(() => {
+    ec2Mock.reset();
+  });
+
   it('returns list of valid running instances', () => {
     const mockInstances = {
       Reservations: [
@@ -43,7 +50,7 @@ describe('listInstancesToStop()', () => {
         },
       ],
     };
-    AWS.mock('EC2', 'describeInstances', mockInstances);
+    ec2Mock.on(DescribeInstancesCommand).resolves(mockInstances);
     return listInstancesToStop(defaultOperatingTimezone)
       .then((instanceIds) => {
         assert.deepEqual(instanceIds, ['i-validinstance']);
@@ -54,7 +61,7 @@ describe('listInstancesToStop()', () => {
     const mockInstances = {
       Reservations: [],
     };
-    AWS.mock('EC2', 'describeInstances', mockInstances);
+    ec2Mock.on(DescribeInstancesCommand).resolves(mockInstances);
 
     return listInstancesToStop(defaultOperatingTimezone)
       .then((instanceIds) => {
@@ -63,6 +70,6 @@ describe('listInstancesToStop()', () => {
   });
 
   afterEach(() => {
-    AWS.restore('EC2', 'describeInstances');
+    ec2Mock.restore();
   });
 });

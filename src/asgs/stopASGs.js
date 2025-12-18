@@ -1,15 +1,15 @@
-const AWS = require('aws-sdk');
+const { AutoScalingClient, UpdateAutoScalingGroupCommand } = require('@aws-sdk/client-auto-scaling');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function spinDownASG(asg) {
-  const autoscaling = new AWS.AutoScaling();
+  const autoscaling = new AutoScalingClient({});
   const params = {
     AutoScalingGroupName: asg.AutoScalingGroupName,
     DesiredCapacity: 0,
     MinSize: 0,
   };
 
-  return retryWhenThrottled(() => autoscaling.updateAutoScalingGroup(params))
+  return retryWhenThrottled(() => autoscaling.send(new UpdateAutoScalingGroupCommand(params)))
     .then(() => asg);
 }
 

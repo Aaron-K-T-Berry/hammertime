@@ -1,5 +1,6 @@
 const assert = require("assert");
-const AWS = require("aws-sdk-mock");
+const { mockClient } = require('aws-sdk-client-mock');
+const { AutoScalingClient, DescribeAutoScalingGroupsCommand } = require('@aws-sdk/client-auto-scaling');
 const listASGsToResume = require("../../src/asgs/listASGsToResume");
 const resumeOnePageResponse = require("./responses/resumeOnePageResponse");
 const emptyResponse = require("./responses/emptyResponse");
@@ -7,9 +8,15 @@ const paginatedResume = require("./responses/paginatedResume");
 const defaultOperatingTimezone =
   require("../../src/config").defaultOperatingTimezone;
 
+const asgMock = mockClient(AutoScalingClient);
+
 describe("listASGsToResume()", () => {
+  beforeEach(() => {
+    asgMock.reset();
+  });
+
   it("returns list of asgs suspended by hammertime", () => {
-    AWS.mock("AutoScaling", "describeAutoScalingGroups", resumeOnePageResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(resumeOnePageResponse);
 
     return listASGsToResume(defaultOperatingTimezone, "all").then(
       (validAsgs) => {
@@ -23,15 +30,15 @@ describe("listASGsToResume()", () => {
   });
 
   it("returns an empty list if no asgs found", () => {
-    AWS.mock("AutoScaling", "describeAutoScalingGroups", emptyResponse);
+    asgMock.on(DescribeAutoScalingGroupsCommand).resolves(emptyResponse);
     return listASGsToResume(defaultOperatingTimezone).then((validAsgs) => {
       assert.deepEqual(validAsgs, []);
     });
   });
 
   it("handles pagination", () => {
-    AWS.mock("AutoScaling", "describeAutoScalingGroups", (params, callback) => {
-      callback(null, paginatedResume(params.NextToken));
+    asgMock.on(DescribeAutoScalingGroupsCommand).callsFake((params) => {
+      return Promise.resolve(paginatedResume(params.NextToken));
     });
 
     return listASGsToResume(defaultOperatingTimezone, "all").then(
@@ -54,6 +61,6 @@ describe("listASGsToResume()", () => {
   });
 
   afterEach(() => {
-    AWS.restore("AutoScaling", "describeAutoScalingGroups");
+    asgMock.restore();
   });
 });

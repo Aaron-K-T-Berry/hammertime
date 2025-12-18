@@ -1,22 +1,22 @@
 const assert = require("assert");
-const AWS = require("aws-sdk-mock");
+const { mockClient } = require("aws-sdk-client-mock");
+const { ECSClient, ListClustersCommand, ListServicesCommand, DescribeClustersCommand, DescribeServicesCommand } = require("@aws-sdk/client-ecs");
 const listServicesToStop = require("../../src/ecs/listServicesToStop.js");
 const defaultOperatingTimezone = require("../../src/config.js").defaultOperatingTimezone;
 const data = require("./mockData.js");
 
+const ecsM = mockClient(ECSClient);
+
 describe("listServicesToStop()", () => {
   beforeEach(() => {
-    AWS.mock("ECS", "describeServices", (params, callback) =>
-      callback(null, data.describeServices(params))
+    ecsM.reset();
+    ecsM.on(ListClustersCommand).resolves(data.listClusters({}));
+    ecsM.on(DescribeClustersCommand).resolves(data.describeClusters({}));
+    ecsM.on(ListServicesCommand).callsFake((params) =>
+      Promise.resolve(data.listServices(params))
     );
-    AWS.mock("ECS", "describeClusters", (params, callback) =>
-      callback(null, data.describeClusters(params))
-    );
-    AWS.mock("ECS", "listClusters", (params, callback) =>
-      callback(null, data.listClusters(params))
-    );
-    AWS.mock("ECS", "listServices", (params, callback) =>
-      callback(null, data.listServices(params))
+    ecsM.on(DescribeServicesCommand).callsFake((params) =>
+      Promise.resolve(data.describeServices(params))
     );
   });
 
@@ -39,9 +39,6 @@ describe("listServicesToStop()", () => {
   });
 
   afterEach(() => {
-    AWS.restore("ECS", "describeServices");
-    AWS.restore("ECS", "describeClusters");
-    AWS.restore("ECS", "listClusters");
-    AWS.restore("ECS", "listServices");
+    ecsM.restore();
   });
 });

@@ -34,12 +34,14 @@
     "serverless": "^1.54.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-sts": "^3.500.0",
     "@babel/cli": "^7.6.4",
     "@babel/core": "^7.6.4",
     "@babel/polyfill": "^7.6.0",
     "@babel/preset-env": "^7.6.3",
     "@istanbuljs/nyc-config-babel": "^2.1.1",
-    "aws-sdk-mock": "^1.7.0",
+    "@aws-sdk/client-ssm": "^3.500.0",
+    "aws-sdk-client-mock": "^3.0.0",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-register": "^6.26.0",
     "chai": "^3.5.0",

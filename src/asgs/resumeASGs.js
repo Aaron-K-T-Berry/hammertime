@@ -1,14 +1,14 @@
-const AWS = require('aws-sdk');
+const { AutoScalingClient, ResumeProcessesCommand } = require('@aws-sdk/client-auto-scaling');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function resumeASGProcesses(asg) {
-  const autoscaling = new AWS.AutoScaling();
+  const autoscaling = new AutoScalingClient({});
   const params = {
     AutoScalingGroupName: asg.AutoScalingGroupName,
     ScalingProcesses: []
   };
 
-  return retryWhenThrottled(() => autoscaling.resumeProcesses(params))
+  return retryWhenThrottled(() => autoscaling.send(new ResumeProcessesCommand(params)))
     .then(() => asg);
 }
 

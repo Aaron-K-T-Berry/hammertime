@@ -1,14 +1,14 @@
-const AWS = require('aws-sdk');
+const { ECSClient, UpdateServiceCommand } = require('@aws-sdk/client-ecs');
 const retryWhenThrottled = require('../utils/retryWhenThrottled');
 
 function spinDownService(service) {
-  const ECS = new AWS.ECS();
+  const ECS = new ECSClient({});
   const params = {
     cluster: service.clusterArn,
     service: service.serviceArn,
     desiredCount: 0,
   };
-  return retryWhenThrottled(() => ECS.updateService(params)).then(() => service);
+  return retryWhenThrottled(() => ECS.send(new UpdateServiceCommand(params))).then(() => service);
 }
 
 function stopServices(services) {
