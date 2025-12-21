@@ -10,13 +10,6 @@ package:
   individually: false
   include:
     - dist/**
-    - node_modules/**
-  exclude:
-    - test/**
-    - .git/**
-    - .gitignore
-    - .babelrc
-    - .eslintrc.json
   iamRoleStatements:
     - Effect: Allow
       Action:

@@ -1,0 +1,11 @@
+node_modules/**
+.git/**
+test/**
+.babelrc
+.eslintrc.json
+.travis.yml
+.nyc_output/**
+.nycrc
+.istanbul.yml
+README.md
+*.gif
