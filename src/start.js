@@ -5,6 +5,7 @@ const resumeASGs = require("./asgs/resumeASGs");
 const listASGsToResume = require("./asgs/listASGsToResume");
 const untagResumedASGs = require("./asgs/untagResumedASGs");
 const startInstances = require("./instances/startInstances");
+const startInstancesWithRetry = require("./instances/startInstancesWithRetry");
 const listInstancesToStart = require("./instances/listInstancesToStart");
 const untagInstances = require("./instances/untagInstances");
 const listDBInstancesToStart = require("./rds/listDBInstancesToStart");
@@ -116,31 +117,6 @@ function startAllInstances({ dryRun, currentOperatingTimezone, application }) {
       });
     }
   );
-}
-
-function startInstancesWithRetry(startableInstances, attempt = 1, maxAttempts = 10) {
-  const retryInterval = 60000; // 1 minute
-
-  console.log(`Attempt ${attempt}/${maxAttempts} to start instances`);
-
-  return startInstances(startableInstances)
-    .then((startedInstanceIds) => {
-      console.log(`Successfully started instances on attempt ${attempt}`);
-      return startedInstanceIds;
-    })
-    .catch((error) => {
-      console.log(`Error starting instances on attempt ${attempt}:`, error);
-
-      if (attempt >= maxAttempts) {
-        console.log(`Max retry attempts (${maxAttempts}) reached. Failing.`);
-        throw error;
-      }
-
-      console.log(`Retrying in 1 minute... (attempt ${attempt + 1}/${maxAttempts})`);
-      return sleep(retryInterval).then(() => {
-        return startInstancesWithRetry(startableInstances, attempt + 1, maxAttempts);
-      });
-    });
 }
 
 function spinUpASGs({ dryRun, currentOperatingTimezone, application }) {
