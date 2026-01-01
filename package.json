@@ -7,10 +7,10 @@
     "deploy": "node_modules/serverless/bin/serverless deploy --verbose",
     "destroy": "node_modules/serverless/bin/serverless remove --verbose",
     "lint": "eslint *.js",
-    "test:unit": "nyc mocha --report lcovonly -- test/**/*.test.js --require test/global.js -R spec",
+    "test:unit": "NODE_ENV=test nyc mocha --report lcovonly -- test/**/*.test.js --require test/global.js -R spec",
     "codecov": "codecov",
     "test": "npm run lint && npm run test.unit",
-    "test.unit": "nyc mocha --report lcovonly -- test/**/*.test.js --require test/global.js -R spec && codecov",
+    "test.unit": "NODE_ENV=test nyc mocha --report lcovonly -- test/**/*.test.js --require test/global.js -R spec && codecov",
     "build": "babel src --out-dir dist"
   },
   "repository": {
@@ -20,7 +20,7 @@
   "author": "nib",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.7.19",
+    "aws-sdk": "2.7.19",
     "handlebars": "^4.5.3",
     "@babel/register": "^7.6.2",
     "luxon": "^1.11.4",
