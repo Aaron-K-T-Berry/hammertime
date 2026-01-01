@@ -49,7 +49,7 @@ async function getAllServices(clusterArnList) {
 
 async function getService(clusterArn) {
   const ECS = new AWS.ECS();
-  const params = { cluster: clusterArn, launchType: 'FARGATE' };
+  const params = { cluster: clusterArn };
   const response = await retryWhenThrottled(() => ECS.listServices(params));
   return { cluster: clusterArn, services: response.serviceArns };
 }
@@ -62,7 +62,7 @@ async function describeServices(clusterList) {
   catch (err) {
     console.log('describeServices - Broken Promise here:');
     console.log(err);
-    return err;
+    return [];
   } 
 }
 
