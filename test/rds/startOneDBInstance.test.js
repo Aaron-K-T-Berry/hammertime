@@ -1,10 +1,8 @@
 const AWSMock = require('aws-sdk-mock');
-const AWS = require('aws-sdk');
 const assert = require('assert');
-const startOneDBInstance = require('../../src/rds/startOneDBInstance');
 
 describe('startOneDBInstance', () => {
-  it('returns an arn of a started RDS DB instance', () => {
+  beforeEach(() => {
     const mockResponse = {
       DBInstance: {
         DBInstanceIdentifier: 'somenstanceid',
@@ -15,6 +13,10 @@ describe('startOneDBInstance', () => {
     AWSMock.mock('RDS', 'startDBInstance', (params, callback) => {
       callback(null, mockResponse);
     });
+  });
+
+  it('returns an arn of a started RDS DB instance', () => {
+    const startOneDBInstance = require('../../src/rds/startOneDBInstance');
     return startOneDBInstance('arn:aws:rds:aws-region:aws-account:db:somenstanceid')
       .then((arn) => {
         assert.deepEqual(arn, 'arn:aws:rds:aws-region:aws-account:db:somenstanceid');

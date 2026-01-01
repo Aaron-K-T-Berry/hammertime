@@ -71,7 +71,6 @@ async function describeService(service) {
   const params = {
     services: service.services,
     cluster: service.cluster,
-    include: ['TAGS'],
   };
   const response = await retryWhenThrottled(() => ECS.describeServices(params));
   return response.services;
