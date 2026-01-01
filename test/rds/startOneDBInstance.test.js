@@ -3,6 +3,10 @@ const assert = require('assert');
 
 describe('startOneDBInstance', () => {
   beforeEach(() => {
+    // Clear require cache so aws-sdk gets loaded fresh after mock is set up
+    delete require.cache[require.resolve('aws-sdk')];
+    delete require.cache[require.resolve('../../src/rds/startOneDBInstance')];
+    
     const mockResponse = {
       DBInstance: {
         DBInstanceIdentifier: 'somenstanceid',
