@@ -302,22 +302,51 @@ module.exports = function start(options) {
     startAllInstancesAndAsgs({ dryRun, currentOperatingTimezone }),
     spinUpServices({ dryRun, currentOperatingTimezone }),
   ])
-    .then(() => {
-      if (!dryRun) {
-        console.log(
-          "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
+    .then((results) => {
+      const failed = results
+        .map((result, idx) => {
+          if (result.status === "rejected") {
+            let fnName = [
+              "startAllDBInstances",
+              "startAllInstancesAndAsgs",
+              "spinUpServices",
+            ][idx];
+            return { fnName, reason: result.reason };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (failed.length > 0) {
+        failed.forEach((fail) => {
+          console.error(`Function ${fail.fnName} failed:`, fail.reason);
+        });
+        callback(
+          new Error(
+            `Start: Hammertime failed for: ${failed
+              .map((f) => f.fnName)
+              .join(", ")}`
+          ),
+          null,
+          event
+        );
+      } else {
+        if (!dryRun) {
+          console.log(
+            "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
+          );
+        }
+        callback(
+          null,
+          {
+            message: "Start: Hammertime successfully completed.",
+          },
+          event
         );
       }
-      callback(
-        null,
-        {
-          message: "Start: Hammertime successfully completed.",
-        },
-        event
-      );
     })
     .catch((err) => {
-      console.error(err);
+      console.error("Unexpected error in start handler:", err);
       callback(err);
     });
 };
