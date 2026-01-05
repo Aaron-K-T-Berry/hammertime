@@ -319,32 +319,44 @@ module.exports = function start(options) {
 
       if (results.some((r) => r.status === "rejected")) {
         failed.forEach((fail) => {
-          console.error(`Function ${fail.fnName} failed:`, fail.reason);
+          let errorMsg = fail.reason && fail.reason.stack
+            ? fail.reason.stack
+            : (fail.reason && fail.reason.message)
+              ? fail.reason.message
+              : JSON.stringify(fail.reason);
+          console.error(`Function ${fail.fnName} failed: ${errorMsg}`);
         });
+        const errorDetails = failed
+          .map((f) => {
+            let errorMsg = f.reason && f.reason.stack
+              ? f.reason.stack
+              : (f.reason && f.reason.message)
+                ? f.reason.message
+                : JSON.stringify(f.reason);
+            return `${f.fnName}: ${errorMsg}`;
+          })
+          .join(" | ");
         callback(
           new Error(
-            `Start: Hammertime failed for: ${failed
-              .map((f) => f.fnName)
-              .join(", ")}`
+            `Start: Hammertime failed for: ${errorDetails}`
           ),
           null,
           event
         );
-        return;
-      }
-
-      if (!dryRun) {
-        console.log(
-          "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
+      } else {
+        if (!dryRun) {
+          console.log(
+            "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
+          );
+        }
+        callback(
+          null,
+          {
+            message: "Start: Hammertime successfully completed.",
+          },
+          event
         );
       }
-      callback(
-        null,
-        {
-          message: "Start: Hammertime successfully completed.",
-        },
-        event
-      );
     })
     .catch((err) => {
       console.error("Unexpected error in start handler:", err);
