@@ -303,21 +303,21 @@ module.exports = function start(options) {
     spinUpServices({ dryRun, currentOperatingTimezone }),
   ])
     .then((results) => {
+      const fnNames = [
+        "startAllDBInstances",
+        "startAllInstancesAndAsgs",
+        "spinUpServices",
+      ];
       const failed = results
         .map((result, idx) => {
           if (result.status === "rejected") {
-            let fnName = [
-              "startAllDBInstances",
-              "startAllInstancesAndAsgs",
-              "spinUpServices",
-            ][idx];
-            return { fnName, reason: result.reason };
+            return { fnName: fnNames[idx], reason: result.reason };
           }
           return null;
         })
         .filter(Boolean);
 
-      if (failed.length > 0) {
+      if (results.some((r) => r.status === "rejected")) {
         failed.forEach((fail) => {
           console.error(`Function ${fail.fnName} failed:`, fail.reason);
         });
@@ -330,23 +330,23 @@ module.exports = function start(options) {
           null,
           event
         );
-      } else {
-        if (!dryRun) {
-          console.log(
-            "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
-          );
-        }
-        callback(
-          null,
-          {
-            message: "Start: Hammertime successfully completed.",
-          },
-          event
+        return;
+      }
+
+      if (!dryRun) {
+        console.log(
+          "All EC2, RDS instances, ASGs, and ECS services started successfully. Good morning!"
         );
       }
+      callback(
+        null,
+        {
+          message: "Start: Hammertime successfully completed.",
+        },
+        event
+      );
     })
     .catch((err) => {
-      // This should not happen with Promise.allSettled, but just in case
       console.error("Unexpected error in start handler:", err);
       callback(err);
     });
