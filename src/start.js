@@ -297,7 +297,7 @@ module.exports = function start(options) {
   const { event, callback, dryRun } = options;
   const currentOperatingTimezone = event.currentOperatingTimezone;
   console.log(`Hammertime start for ${currentOperatingTimezone}`);
-  Promise.all([
+  Promise.allSettled([
     startAllDBInstances(dryRun),
     startAllInstancesAndAsgs({ dryRun, currentOperatingTimezone }),
     spinUpServices({ dryRun, currentOperatingTimezone }),
@@ -346,6 +346,7 @@ module.exports = function start(options) {
       }
     })
     .catch((err) => {
+      // This should not happen with Promise.allSettled, but just in case
       console.error("Unexpected error in start handler:", err);
       callback(err);
     });
