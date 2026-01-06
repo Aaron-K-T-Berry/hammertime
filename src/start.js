@@ -294,6 +294,7 @@ module.exports = function start(options) {
   const { event, callback, dryRun } = options;
   const currentOperatingTimezone = event.currentOperatingTimezone;
   console.log(`Hammertime start for ${currentOperatingTimezone}`);
+  // Promise.allSettled will wait for all promises to settle (either fulfilled or rejected), while Promise.all will reject as soon as one of the promises rejects.
   Promise.allSettled([
     startAllDBInstances(dryRun),
     startAllInstancesAndAsgs({ dryRun, currentOperatingTimezone }),
