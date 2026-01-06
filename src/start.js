@@ -64,9 +64,6 @@ function startAllInstancesAndAsgs({ dryRun, currentOperatingTimezone }) {
     })
     .then((result) => {
       console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 6 FINISH");
-    })
-    .catch((error) => {
-      console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ERROR", error);
     });
 }
 /**
