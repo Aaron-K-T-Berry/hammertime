@@ -49,7 +49,7 @@ async function getAllServices(clusterArnList) {
 
 async function getService(clusterArn) {
   const ECS = new AWS.ECS();
-  const params = { cluster: clusterArn };
+  const params = { cluster: clusterArn, launchType: 'FARGATE' };
   const response = await retryWhenThrottled(() => ECS.listServices(params));
   return { cluster: clusterArn, services: response.serviceArns };
 }
