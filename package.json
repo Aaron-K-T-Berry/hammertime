@@ -32,22 +32,20 @@
     "serverless": "^4.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/core": "^7.6.4",
-    "@babel/polyfill": "^7.6.0",
-    "@babel/preset-env": "^7.6.3",
-    "@istanbuljs/nyc-config-babel": "^2.1.1",
-    "aws-sdk-mock": "^1.7.0",
-    "babel-plugin-istanbul": "^5.2.0",
-    "babel-register": "^6.26.0",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@istanbuljs/nyc-config-babel": "^3.0.0",
+    "aws-sdk-mock": "^6.2.2",
+    "babel-plugin-istanbul": "^7.0.0",
     "chai": "^3.5.0",
-    "codecov": "^3.8.3",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-chai-expect": "^1.1.1",
-    "eslint-plugin-chai-friendly": "^0.3.6",
+    "eslint-plugin-chai-expect": "^4.1.0",
+    "eslint-plugin-chai-friendly": "^1.2.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-mocha": "^10.5.0",
-    "mocha": "^6.2.1"
+    "mocha": "^10.0.0",
+    "nyc": "^17.1.0"
   }
 }
